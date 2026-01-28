@@ -1,0 +1,91 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <math.h>
+#include <string.h>
+
+int precedence(char op) {
+    if (op == '+' || op == '-') {
+        return 1;
+    }
+    if (op == '*' || op == '/') {
+        return 2;
+    }
+    if (op == '^') {
+        return 3;
+    }
+    return 0;
+}
+
+double apply_operation(double a, double b, char op) {
+    switch (op) {
+        case '+': return a + b;
+        case '-': return a - b;
+        case '*': return a * b;
+        case '/': return a / b;
+        case '^': return pow(a, b);
+        default: return 0;
+    }
+}
+
+double evaluate_expression(char* tokens) {
+    int i;
+    double values[100];
+    char ops[100];
+    int values_index = -1, ops_index = -1;
+    
+    for (i = 0; tokens[i] != '\0'; i++) {
+        if (tokens[i] == ' ') {
+            continue;
+        }
+        
+        if (tokens[i] == '(') {
+            ops[++ops_index] = tokens[i];
+        } else if (isdigit(tokens[i])) {
+            double val = 0;
+            while (i < strlen(tokens) && isdigit(tokens[i])) {
+                val = (val * 10) + (tokens[i] - '0');
+                i++;
+            }
+            values[++values_index] = val;
+            i--;
+        } else if (tokens[i] == ')') {
+            while (ops_index != -1 && ops[ops_index] != '(') {
+                double val2 = values[values_index--];
+                double val1 = values[values_index--];
+                char op = ops[ops_index--];
+                values[++values_index] = apply_operation(val1, val2, op);
+            }
+            ops_index--;
+        } else {
+            while (ops_index != -1 && precedence(ops[ops_index]) >= precedence(tokens[i])) {
+                double val2 = values[values_index--];
+                double val1 = values[values_index--];
+                char op = ops[ops_index--];
+                values[++values_index] = apply_operation(val1, val2, op);
+            }
+            ops[++ops_index] = tokens[i];
+        }
+    }
+    
+    while (ops_index != -1) {
+        double val2 = values[values_index--];
+        double val1 = values[values_index--];
+        char op = ops[ops_index--];
+        values[++values_index] = apply_operation(val1, val2, op);
+    }
+    
+    return values[values_index];
+}
+
+int main() {
+    char expression[100];
+    
+    printf("Enter an arithmetic expression: ");
+    fgets(expression, 100, stdin);
+    expression[strcspn(expression, "\n")] = 0; // Remove newline character
+    
+    double result = evaluate_expression(expression);
+    printf("The result of the expression is: %lf\n", result);
+    
+    return 0;
+}
