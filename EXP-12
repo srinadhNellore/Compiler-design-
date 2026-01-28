@@ -1,0 +1,50 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+void generate_three_address_code(char *expression) {
+    char temp_var = 't';
+    int temp_count = 1;
+    char output[100][100];
+    int output_index = 0;
+    
+    while (*expression) {
+        if (isdigit(*expression) || isalpha(*expression)) {
+            char operand1 = *expression;
+            expression++;
+            
+            if (*expression == '+' || *expression == '-' || *expression == '*' || *expression == '/') {
+                char operator = *expression;
+                expression++;
+                
+                if (isdigit(*expression) || isalpha(*expression)) {
+                    char operand2 = *expression;
+                    sprintf(output[output_index++], "%c%d = %c %c %c", temp_var, temp_count, operand1, operator, operand2);
+                    operand1 = temp_var + temp_count - 1;
+                    temp_count++;
+                }
+            }
+            
+            while (*expression && *expression != '+' && *expression != '-' && *expression != '*' && *expression != '/') {
+                expression++;
+            }
+        } else {
+            expression++;
+        }
+    }
+    
+    for (int i = 0; i < output_index; i++) {
+        printf("%s\n", output[i]);
+    }
+}
+
+int main() {
+    char expression[100];
+    
+    printf("Enter an expression: ");
+    scanf("%s", expression);
+    
+    generate_three_address_code(expression);
+    
+    return 0;
+}
