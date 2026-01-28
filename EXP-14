@@ -1,0 +1,62 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_EXPRS 100
+#define MAX_LEN 100
+
+typedef struct {
+    char expr[MAX_LEN];
+    int temp_num;
+} Expression;
+
+int is_common_subexpression(Expression exprs[], int count, char *expr) {
+    for (int i = 0; i < count; i++) {
+        if (strcmp(exprs[i].expr, expr) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void optimize_code(char *code[], int n) {
+    Expression exprs[MAX_EXPRS];
+    int count = 0;
+    int temp_num = 1;
+    char optimized_code[MAX_EXPRS][MAX_LEN];
+    int optimized_count = 0;
+
+    for (int i = 0; i < n; i++) {
+        char var[MAX_LEN], expr[MAX_LEN];
+        sscanf(code[i], "%s = %[^\n]", var, expr);
+
+        int index = is_common_subexpression(exprs, count, expr);
+        if (index == -1) {
+            snprintf(exprs[count].expr, MAX_LEN, "%s", expr);
+            exprs[count].temp_num = temp_num;
+            snprintf(optimized_code[optimized_count++], MAX_LEN, "t%d = %s", temp_num++, expr);
+            snprintf(optimized_code[optimized_count++], MAX_LEN, "%s = t%d", var, exprs[count].temp_num);
+            count++;
+        } else {
+            snprintf(optimized_code[optimized_count++], MAX_LEN, "%s = t%d", var, exprs[index].temp_num);
+        }
+    }
+
+    printf("Optimized Code:\n");
+    for (int i = 0; i < optimized_count; i++) {
+        printf("%s\n", optimized_code[i]);
+    }
+}
+
+int main() {
+    char *code[] = {
+        "a = b + c",
+        "d = b + c",
+        "e = a + d"
+    };
+    int n = sizeof(code) / sizeof(code[0]);
+
+    optimize_code(code, n);
+
+    return 0;
+}
